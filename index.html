@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icono-192.png">
 <title>La compra</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232C7A4B'/%3E%3Cpath d='M14 18h6l5 22h20l5-15H23' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='28' cy='48' r='3.5' fill='white'/%3E%3Ccircle cx='43' cy='48' r='3.5' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" href="icono-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <!-- ===================== CONFIGURACIÓN =====================
@@ -20,29 +20,42 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzJxJDy1uVi7cQDsdZaop5E
 <style>
 :root{
   --bg:#EEF3EF; --card:#FFFFFF; --fg:#17251C; --muted:#5D6E63; --line:#D5DFD8;
-  --accent:#2C7A4B; --accent-ink:#FFFFFF; --tag:#F2C94C; --tag-ink:#3A2E05; --danger:#B3402F;
+  --accent:#2C7A4B; --accent-ink:#FFFFFF; --soft:#DCEBE1; --tag:#F2C94C; --tag-ink:#3A2E05; --danger:#B3402F;
+  --shade:rgba(10,20,14,.45);
   --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
   --body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root{
   --bg:#101814; --card:#18231D; --fg:#E4EEE7; --muted:#93A69A; --line:#2A3A31;
-  --accent:#4FB37A; --accent-ink:#0B1610; --tag:#E0B53E; --tag-ink:#1E1703; --danger:#E0745F; color-scheme:dark}}
+  --accent:#4FB37A; --accent-ink:#0B1610; --soft:#21352A; --tag:#E0B53E; --tag-ink:#1E1703; --danger:#E0745F;
+  --shade:rgba(0,0,0,.6); color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.4;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 170px}
-header{position:sticky;top:0;z-index:5;background:var(--bg);padding-top:calc(18px + env(safe-area-inset-top,0px));padding-bottom:12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line)}
+button{font-family:inherit}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 180px}
+
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding-top:calc(16px + env(safe-area-inset-top,0px));border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 h1{font-family:var(--display);font-weight:800;font-size:1.65rem;letter-spacing:-.01em;margin:0}
 .count{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .count b{color:var(--fg)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-block:12px;margin-inline:-4px;padding-inline:4px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:1.5px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:7px 13px;font-size:.92rem;font-weight:500;cursor:pointer;white-space:nowrap}
+.tab .n{color:var(--muted);font-variant-numeric:tabular-nums;margin-left:4px}
+.tab.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tab.on .n{color:var(--accent-ink);opacity:.8}
+.tab.cfg{color:var(--muted)}
+
 .status{margin:14px 0 0;font-size:.9rem;color:var(--muted)}
 .status.err{color:var(--danger)}
 section{margin-top:22px}
-h2{font-family:var(--display);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 8px;display:flex;justify-content:space-between;align-items:center}
+h2{font-family:var(--display);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 ul{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-li{display:flex;align-items:center;gap:12px;padding:0 6px 0 14px;min-height:54px;border-top:1px solid var(--line)}
+li{display:flex;align-items:center;gap:10px;padding:0 4px 0 14px;min-height:54px;border-top:1px solid var(--line)}
 li:first-child{border-top:0}
 .tick{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--accent);background:transparent;display:grid;place-items:center;cursor:pointer;padding:0}
 .tick svg{width:14px;height:14px;opacity:0}
@@ -51,37 +64,68 @@ li.done .tick svg{opacity:1}
 .name{flex:1;min-width:0;cursor:pointer;padding:14px 0;overflow-wrap:anywhere}
 .qty{display:inline-block;min-width:1.6em;text-align:center;background:var(--tag);color:var(--tag-ink);font-weight:600;font-size:.8rem;border-radius:6px;padding:1px 6px;margin-right:8px;font-variant-numeric:tabular-nums}
 li.done .name{color:var(--muted);text-decoration:line-through}
-.del{flex:none;width:44px;height:44px;border:0;background:transparent;color:var(--muted);border-radius:10px;cursor:pointer;font-size:1.3rem;line-height:1}
-.link{border:0;background:transparent;color:var(--danger);font:600 .8rem var(--body);cursor:pointer;padding:6px 4px}
+.chip{flex:none;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:0;background:var(--soft);color:var(--fg);border-radius:8px;padding:5px 9px;font-size:.78rem;font-weight:600;cursor:pointer}
+.chip.none{background:transparent;color:var(--muted);border:1px dashed var(--line);font-weight:500}
+.del{flex:none;width:40px;height:44px;border:0;background:transparent;color:var(--muted);border-radius:10px;cursor:pointer;font-size:1.3rem;line-height:1}
+.link{border:0;background:transparent;color:var(--danger);font:600 .8rem var(--body);cursor:pointer;padding:6px 4px;text-transform:none;letter-spacing:0}
+.foot{margin-top:28px;text-align:center}
 .empty{margin-top:40px;text-align:center;color:var(--muted);padding:0 12px}
 .empty strong{display:block;font-family:var(--display);font-size:1.3rem;color:var(--fg);margin-bottom:6px}
+
+/* Gestor de tiendas */
+.shops{margin-top:18px;display:grid;gap:12px}
+.shop{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px}
+.shop label{font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.shop input,.gate input{font:inherit;color:var(--fg);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.shop input:focus,.gate input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+.shop .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.small{height:40px;border-radius:10px;border:0;padding:0 14px;font-weight:600;cursor:pointer}
+.small.ok{background:var(--accent);color:var(--accent-ink)}
+.small.ghost{background:transparent;color:var(--danger)}
+.note{color:var(--muted);font-size:.88rem;margin:4px 0 0}
+
 .gate{margin-top:40px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:12px}
 .gate strong{font-family:var(--display);font-size:1.2rem}
 .gate p{margin:0;color:var(--muted)}
-.gate input{font:inherit;color:var(--fg);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;width:100%}
+
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);
   padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .bar form{max-width:560px;margin:0 auto;display:flex;gap:8px;align-items:flex-end}
 textarea{flex:1;min-width:0;resize:none;font:inherit;font-size:1rem;color:var(--fg);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;min-height:50px;max-height:120px}
-textarea:focus,.gate input:focus{outline:none;border-color:var(--accent)}
 .btn{flex:none;height:50px;border-radius:12px;border:0;cursor:pointer;font:600 1rem var(--body)}
 .add{background:var(--accent);color:var(--accent-ink);padding:0 18px}
-.add:disabled{opacity:.5}
 .mic{width:50px;background:var(--bg);color:var(--accent);border:1.5px solid var(--line);display:grid;place-items:center}
 .mic svg{width:22px;height:22px}
 .mic.on{background:var(--danger);color:#fff;border-color:var(--danger);animation:pulse 1.2s infinite}
 @keyframes pulse{50%{transform:scale(1.06)}}
-@media (prefers-reduced-motion:reduce){.mic.on{animation:none}}
 .hint{max-width:560px;margin:8px auto 0;font-size:.8rem;color:var(--muted)}
+
+/* Hoja inferior (elegir tienda / confirmar) */
+.shade{position:fixed;inset:0;z-index:20;background:var(--shade);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:560px;background:var(--card);border-radius:18px 18px 0 0;padding:18px max(16px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:10px}
+.sheet h3{margin:0 0 4px;font-family:var(--display);font-size:1.15rem}
+.sheet p{margin:0;color:var(--muted)}
+.opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:13px 14px;font-size:1rem;cursor:pointer}
+.opt.on{border-color:var(--accent);background:var(--soft);font-weight:600}
+.opts2{display:flex;gap:8px}
+.opts2 .btn{flex:1}
+.cancel{background:var(--bg);color:var(--fg);border:1.5px solid var(--line)}
+.danger{background:var(--danger);color:#fff}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:15;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.92rem;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
 button:focus-visible,textarea:focus-visible,.name:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.mic.on{animation:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>La compra</h1>
-    <span class="count" id="count"></span>
+    <div class="top">
+      <h1>La compra</h1>
+      <span class="count" id="count"></span>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="Supermercados"></nav>
   </header>
   <p class="status" id="status">Cargando la lista…</p>
 
@@ -93,25 +137,26 @@ button:focus-visible,textarea:focus-visible,.name:focus-visible{outline:2px soli
   </form>
 
   <div id="list"></div>
-  <div class="empty" id="empty" hidden>
-    <strong>La lista está vacía</strong>
-    Escribe o dicta abajo lo que haga falta, por ejemplo: «leche, huevos y dos barras de pan».
-  </div>
+  <div class="empty" id="empty" hidden></div>
+  <div id="shopsView" hidden></div>
 </div>
 
 <div class="bar" id="bar" hidden>
   <form id="form" autocomplete="off">
-    <textarea id="entry" rows="1" placeholder="Leche, huevos y dos barras de pan…" aria-label="Qué hay que comprar"></textarea>
+    <textarea id="entry" rows="1" placeholder="Del Mercadona leche y huevos…" aria-label="Qué hay que comprar"></textarea>
     <button type="button" class="btn mic" id="mic" aria-label="Dictar" hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
     </button>
     <button type="submit" class="btn add" id="addBtn">Añadir</button>
   </form>
-  <p class="hint" id="hint">Pulsa el micro y di varias cosas seguidas. Separa con «y» o haciendo una pausa.</p>
+  <p class="hint" id="hint">Ej.: «del Lidl pan y huevos» · «borra la leche» · «borra todo»</p>
 </div>
 
+<div class="shade" id="shade" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
 <script>
-/* ---------- Secciones del súper ---------- */
+/* ================= Secciones del súper ================= */
 const CATS = [
   ["fruta","Fruta y verdura",["manzana","platano","naranja","mandarina","limon","tomate","lechuga","cebolla","ajo","patata","zanahoria","pimiento","pepino","fresa","uva","pera","melon","sandia","aguacate","calabacin","berenjena","espinaca","champinon","seta","kiwi","melocoton","fruta","verdura","brocoli","coliflor","puerro","judia verde","perejil","cilantro"]],
   ["lacteos","Lácteos y huevos",["leche","yogur","queso","mantequilla","nata","huevo","kefir","batido","natillas","flan"]],
@@ -126,72 +171,171 @@ const CATS = [
 const ORDER = CATS.map(c=>c[0]).concat("otros");
 const LABEL = Object.fromEntries(CATS.map(c=>[c[0],c[1]]).concat([["otros","Otros"]]));
 const KEYS = CATS.flatMap(([id,,ks])=>ks.map(k=>[k,id])).sort((a,b)=>b[0].length-a[0].length);
-const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim();
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim();
 function guessCat(name){ const n=" "+norm(name); for (const [k,id] of KEYS) if (n.includes(" "+k)) return id; return "otros"; }
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
 
-/* ---------- Separar lo dictado en productos ---------- */
+/* ================= Interpretar lo dictado ================= */
 const NUMS = {un:1,uno:1,una:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,doce:12,"media docena":6,"una docena":12,docena:12};
-function parse(text){
-  let t = " " + text.replace(/[\n;.]+/g, ",") + " ";
+const VOC = {a:"[aáà]",e:"[eéè]",i:"[iíï]",o:"[oóò]",u:"[uúü]"};
+function aliasRegex(alias){
+  const body = norm(alias).split("").map(ch => VOC[ch] || (ch===" " ? "\\s*" : ch.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"))).join("");
+  return body;
+}
+function storeAliases(){
+  const list = [];
+  tiendas.forEach(t => {
+    const names = [t.nombre].concat(String(t.alias||"").split(",")).map(s=>s.trim()).filter(Boolean);
+    names.forEach(n => list.push({ id:t.id, re:aliasRegex(n), len:norm(n).length }));
+  });
+  return list.sort((a,b)=>b.len-a.len);
+}
+/* Sustituye las menciones de tiendas («del Mercadona», «en el Lidl») por marcas §n§ */
+function markStores(text){
+  const found = [];
+  let t = " " + text + " ";
+  for (const a of storeAliases()){
+    const re = new RegExp("(?:\\s(?:lo\\s+)?(?:del|de\\s+la|de|en\\s+el|en\\s+la|en|para\\s+el|para|al|a\\s+la))?\\s" + a.re + "(?=[\\s,.;]|$)", "gi");
+    t = t.replace(re, () => { found.push(a.id); return " ,§" + (found.length-1) + "§, "; });
+  }
+  return { text:t, found };
+}
+function splitParts(t){
+  t = t.replace(/[\n;.]+/g, ",");
   t = t.replace(/\s+(y|e|más|mas|también|tambien)\s+/gi, ",");
-  return t.split(",").map(p=>p.trim()).filter(Boolean).map(p=>{
-    p = p.replace(/^(hay que comprar|tenemos que comprar|necesitamos|necesito|añade|añadir|anade|apunta|apuntar|pon|compra|comprar|falta|faltan|y)\s+/i,"").trim();
-    let cant = null, m;
-    if ((m = p.match(/^(\d+)\s+(.+)$/))) { cant = +m[1]; p = m[2]; }
-    else {
-      const low = norm(p);
-      for (const w of Object.keys(NUMS).sort((a,b)=>b.length-a.length)) {
-        if (low.startsWith(w+" ")) { const v=NUMS[w]; if (v>1 || w.includes("docena")) cant=v; p=p.slice(w.length).trim().replace(/^de\s+/i,""); break; }
-      }
+  return t.split(",").map(p=>p.trim()).filter(Boolean);
+}
+function parseItem(p){
+  p = p.replace(/^(hay que comprar|tenemos que comprar|necesitamos|necesito|añade|añadir|anade|apunta|apuntar|pon|compra|comprar|falta|faltan|y)\s+/i,"").trim();
+  let cant = null, m;
+  if ((m = p.match(/^(\d+)\s+(.+)$/))) { cant = +m[1]; p = m[2]; }
+  else {
+    const low = norm(p);
+    for (const w of Object.keys(NUMS).sort((a,b)=>b.length-a.length)) {
+      if (low.startsWith(w+" ")) { const v=NUMS[w]; if (v>1 || w.includes("docena")) cant=v; p=p.slice(w.length).trim().replace(/^de\s+/i,""); break; }
     }
-    if (!p) return null;
-    return { nombre: p.charAt(0).toUpperCase()+p.slice(1), cant };
-  }).filter(Boolean);
+  }
+  return p ? { nombre:cap(p), cant } : null;
+}
+/* Devuelve productos con su tienda. Si la frase empieza por la tienda, se aplica hacia delante;
+   si la tienda va detrás («leche y huevos del Mercadona»), se aplica a lo dicho antes. */
+function parseAdd(text, defaultStore){
+  const { text:marked, found } = markStores(text);
+  const parts = splitParts(marked);
+  const out = [];
+  const startsWithStore = parts.length && /^§\d+§$/.test(parts[0]);
+  let current = defaultStore || "", pendingIdx = [];
+  for (const p of parts){
+    const mk = p.match(/^§(\d+)§$/);
+    if (mk){
+      const st = found[+mk[1]];
+      if (startsWithStore) current = st;
+      else { pendingIdx.forEach(i => out[i].tienda = st); pendingIdx = []; }
+      continue;
+    }
+    const it = parseItem(p.replace(/§\d+§/g,"").trim());
+    if (!it) continue;
+    it.tienda = current; out.push(it); pendingIdx.push(out.length-1);
+  }
+  return out;
+}
+/* Órdenes: borrar algo, todo, lo comprado o lo de una tienda */
+const DEL_RE = /^(borra|borrar|borrame|bórrame|quita|quitar|quitame|quítame|elimina|eliminar|saca|sacar|tacha)\s+(.*)$/i;
+function parseCommand(text){
+  const m = text.trim().match(DEL_RE);
+  if (!m) return null;
+  let rest = m[2].trim().replace(/[.!]+$/,"");
+  const r = norm(rest);
+  if (/^(todo|toda la lista|la lista|la lista entera|todo lo de la lista|todos|todo de la lista)$/.test(r)) return { tipo:"vaciar" };
+  if (/^(lo comprado|lo que hemos comprado|lo del carro|el carro|lo cogido|lo que esta cogido|lo marcado|lo tachado)$/.test(r)) return { tipo:"limpiar" };
+  if (/^(todo|todos los productos)\b/.test(r)){
+    const { found } = markStores(rest);
+    if (found.length) return { tipo:"tienda", tienda:found[0] };
+  }
+  const names = splitParts(markStores(rest).text.replace(/§\d+§/g,"")).map(p => p.replace(/^(el|la|los|las|un|una|unos|unas)\s+/i,"").trim()).filter(Boolean);
+  return { tipo:"productos", names };
+}
+const sing = s => { s = norm(s); return s.replace(/(es|s)$/,""); };
+function findItems(term){
+  const t = sing(term);
+  if (t.length < 2) return [];
+  const exact = items.filter(i => sing(i.nombre) === t);
+  if (exact.length) return exact;
+  return items.filter(i => { const n = sing(i.nombre); return (t.length>=3 && n.includes(t)) || (n.length>=3 && t.includes(n)); });
 }
 
-/* ---------- Código de acceso (se guarda en el móvil) ---------- */
+/* ================= Código de acceso ================= */
 const store = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
 (function codeFromUrl(){
-  const q = new URLSearchParams(location.search);
-  const k = q.get("k");
+  const q = new URLSearchParams(location.search), k = q.get("k");
   if (k){ store.set("compra_clave", k); history.replaceState(null, "", location.pathname); }
 })();
 let CLAVE = store.get("compra_clave");
 
-/* ---------- Comunicación con Apps Script ---------- */
-async function apiGet(){
-  const r = await fetch(API_URL + "?k=" + encodeURIComponent(CLAVE) + "&t=" + Date.now());
-  return r.json();
-}
+/* ================= Comunicación con Apps Script ================= */
+async function apiGet(){ const r = await fetch(API_URL + "?k=" + encodeURIComponent(CLAVE) + "&t=" + Date.now()); return r.json(); }
 async function apiPost(body){
   const r = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({k:CLAVE, ...body}) });
   return r.json();
 }
 
-/* ---------- Estado y pintado ---------- */
+/* ================= Estado ================= */
 const $ = id => document.getElementById(id);
-const listEl=$("list"), statusEl=$("status"), emptyEl=$("empty"), countEl=$("count");
-let items = [], loaded = false, pending = 0, confirmClear = false;
+const listEl=$("list"), statusEl=$("status"), emptyEl=$("empty"), countEl=$("count"), tabsEl=$("tabs"), shopsEl=$("shopsView");
+let items = [], tiendas = [], loaded = false, pending = 0;
+let tab = store.get("compra_tab") || "todo";
 
 function setStatus(msg, err){ statusEl.textContent = msg||""; statusEl.hidden = !msg; statusEl.classList.toggle("err", !!err); }
+let toastTimer;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.hidden=true, 3200); }
+const shopName = id => (tiendas.find(t=>t.id===id)||{}).nombre;
+const itemShop = i => shopName(i.tienda) ? i.tienda : "";
+function visible(){ return tab==="todo" ? items : items.filter(i => { const s=itemShop(i); return s===tab || s===""; }); }
 
+/* ================= Pintado ================= */
 function render(){
-  const porComprar = items.filter(i=>!i.hecho), carro = items.filter(i=>i.hecho);
-  countEl.innerHTML = items.length ? `<b>${porComprar.length}</b> por comprar` : "";
-  emptyEl.hidden = !loaded || items.length > 0;
+  if (tab!=="todo" && tab!=="tiendas" && !shopName(tab) && tiendas.length) tab="todo";
+  renderTabs();
+  const showShops = tab==="tiendas";
+  shopsEl.hidden = !showShops; listEl.hidden = showShops; $("bar").hidden = showShops || !CLAVE;
+  if (showShops){ emptyEl.hidden=true; countEl.textContent=""; if (!shopsEl.contains(document.activeElement)) renderShops(); return; }
+  const vis = visible(), porComprar = vis.filter(i=>!i.hecho), carro = vis.filter(i=>i.hecho);
+  countEl.innerHTML = vis.length ? `<b>${porComprar.length}</b> por comprar` : "";
+  emptyEl.hidden = !loaded || vis.length > 0;
+  emptyEl.innerHTML = tab==="todo"
+    ? "<strong>La lista está vacía</strong>Escribe o dicta abajo lo que haga falta, por ejemplo: «del Mercadona leche, huevos y dos barras de pan»."
+    : `<strong>Nada para ${esc(shopName(tab))}</strong>Lo que dictes estando en esta pestaña se apunta para ${esc(shopName(tab))}.`;
   listEl.innerHTML = "";
   const groups = {};
   porComprar.forEach(i => (groups[i.seccion in LABEL ? i.seccion : "otros"] ||= []).push(i));
   ORDER.forEach(c => { if (groups[c]) listEl.append(group(LABEL[c], groups[c].sort((a,b)=>a.nombre.localeCompare(b.nombre,"es")))); });
-  if (carro.length) listEl.append(group("En el carro", carro, true));
+  if (carro.length) listEl.append(group("En el carro", carro, "carro"));
+  if (items.length){
+    const f=document.createElement("div"); f.className="foot";
+    const b=document.createElement("button"); b.className="link"; b.type="button"; b.textContent="Vaciar toda la lista";
+    b.onclick=()=>askVaciar(); f.append(b); listEl.append(f);
+  }
 }
-function group(title, arr, isCarro){
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function renderTabs(){
+  const pend = id => items.filter(i=>!i.hecho && (id==="todo" || itemShop(i)===id || itemShop(i)==="")).length;
+  const defs = [["todo","Todo"]].concat(tiendas.map(t=>[t.id,t.nombre]));
+  tabsEl.innerHTML = "";
+  defs.forEach(([id,label]) => {
+    const b=document.createElement("button"); b.type="button"; b.className="tab"+(tab===id?" on":"");
+    b.innerHTML = `${esc(label)}<span class="n">${pend(id)}</span>`;
+    b.onclick=()=>setTab(id); tabsEl.append(b);
+  });
+  const c=document.createElement("button"); c.type="button"; c.className="tab cfg"+(tab==="tiendas"?" on":""); c.textContent="⚙ Tiendas";
+  c.onclick=()=>setTab("tiendas"); tabsEl.append(c);
+}
+function setTab(id){ tab=id; store.set("compra_tab", id); render(); window.scrollTo(0,0); }
+function group(title, arr, kind){
   const s=document.createElement("section"), h=document.createElement("h2"), sp=document.createElement("span");
   sp.textContent = `${title} · ${arr.length}`; h.append(sp);
-  if (isCarro){
-    const b=document.createElement("button"); b.className="link"; b.type="button";
-    b.textContent = confirmClear ? "¿Seguro? Toca otra vez" : "Quitar del carro";
-    b.onclick = clearDone; h.append(b);
+  if (kind==="carro"){
+    const b=document.createElement("button"); b.className="link"; b.type="button"; b.textContent="Quitar del carro";
+    b.onclick=()=>askLimpiar(); h.append(b);
   }
   s.append(h);
   const ul=document.createElement("ul"); arr.forEach(i=>ul.append(row(i))); s.append(ul);
@@ -207,20 +351,106 @@ function row(i){
   n.append(document.createTextNode(i.nombre));
   const toggle = () => { const v=!i.hecho; i.hecho=v; render(); send({accion:"marcar", id:i.id, hecho:v}); };
   t.onclick=toggle; n.onclick=toggle; n.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();} };
+  const ch=document.createElement("button"); ch.type="button";
+  const sn = shopName(itemShop(i));
+  ch.className = "chip" + (sn ? "" : " none"); ch.textContent = sn || "Cualquiera";
+  ch.setAttribute("aria-label","Supermercado de " + i.nombre + ": " + (sn||"cualquiera"));
+  ch.onclick = () => pickShop(i);
   const d=document.createElement("button"); d.className="del"; d.type="button"; d.textContent="×";
   d.setAttribute("aria-label","Borrar "+i.nombre);
   d.onclick = () => { items = items.filter(x=>x!==i); render(); send({accion:"borrar", id:i.id}); };
-  li.append(t,n,d);
+  li.append(t,n,ch,d);
   return li;
 }
 
-/* Escrituras: se ven al instante y luego se confirman con la hoja */
+/* ================= Hoja inferior ================= */
+function openSheet(build){ const sh=$("sheet"); sh.innerHTML=""; build(sh); $("shade").hidden=false; }
+function closeSheet(){ $("shade").hidden=true; }
+$("shade").addEventListener("click", e => { if (e.target.id==="shade") closeSheet(); });
+function pickShop(i){
+  openSheet(sh => {
+    sh.innerHTML = `<h3>¿Dónde se compra «${esc(i.nombre)}»?</h3>`;
+    [["", "Cualquiera"]].concat(tiendas.map(t=>[t.id,t.nombre])).forEach(([id,label]) => {
+      const b=document.createElement("button"); b.type="button"; b.className="opt"+(itemShop(i)===id?" on":""); b.textContent=label;
+      b.onclick=()=>{ closeSheet(); i.tienda=id; render(); send({accion:"tienda", id:i.id, tienda:id}); };
+      sh.append(b);
+    });
+  });
+}
+function confirmSheet(title, text, okLabel, onOk){
+  openSheet(sh => {
+    sh.innerHTML = `<h3>${esc(title)}</h3><p>${esc(text)}</p>`;
+    const row=document.createElement("div"); row.className="opts2";
+    const c=document.createElement("button"); c.type="button"; c.className="btn cancel"; c.textContent="Cancelar"; c.onclick=closeSheet;
+    const o=document.createElement("button"); o.type="button"; o.className="btn danger"; o.textContent=okLabel; o.onclick=()=>{ closeSheet(); onOk(); };
+    row.append(c,o); sh.append(row);
+  });
+}
+function askVaciar(){
+  if (!items.length) return toast("La lista ya está vacía.");
+  confirmSheet("¿Vaciar la lista?", `Se borrarán los ${items.length} productos, también para tu pareja.`, "Vaciar", () => {
+    items=[]; render(); send({accion:"vaciar"}); toast("Lista vaciada.");
+  });
+}
+function askLimpiar(){
+  const n = items.filter(i=>i.hecho).length;
+  if (!n) return toast("No hay nada en el carro.");
+  confirmSheet("¿Quitar lo del carro?", `Se borrarán ${n} producto${n>1?"s":""} ya cogido${n>1?"s":""}.`, "Quitar", () => {
+    items=items.filter(i=>!i.hecho); render(); send({accion:"limpiar"});
+  });
+}
+function askBorrarTienda(id){
+  const nombre = shopName(id), del = items.filter(i=>itemShop(i)===id);
+  if (!del.length) return toast(`No hay nada apuntado para ${nombre}.`);
+  confirmSheet(`¿Borrar lo de ${nombre}?`, `Se borrarán ${del.length} producto${del.length>1?"s":""}.`, "Borrar", () => {
+    const ids = del.map(i=>i.id); items = items.filter(i=>!ids.includes(i.id)); render(); send({accion:"borrarVarios", ids});
+  });
+}
+
+/* ================= Gestor de tiendas ================= */
+function renderShops(){
+  shopsEl.innerHTML = `<p class="note">Pon en «Cómo lo decís» las formas en que lo pronunciáis al dictar, separadas por comas. Por ejemplo: <em>lidel</em> o <em>carrefur</em>.</p>`;
+  const box=document.createElement("div"); box.className="shops";
+  tiendas.forEach(t => box.append(shopCard(t)));
+  box.append(shopCard(null));
+  shopsEl.append(box);
+}
+function shopCard(t){
+  const c=document.createElement("form"); c.className="shop";
+  const uid = t ? t.id : "nueva";
+  c.innerHTML = `<label for="n-${uid}">${t ? "Supermercado" : "Añadir supermercado"}</label>
+    <input id="n-${uid}" value="${t?esc(t.nombre):""}" placeholder="Nombre" autocomplete="off">
+    <label for="a-${uid}">Cómo lo decís</label>
+    <input id="a-${uid}" value="${t?esc(t.alias):""}" placeholder="p. ej. lidel, el lidel" autocomplete="off">
+    <div class="row"></div>`;
+  const row=c.querySelector(".row");
+  if (t){
+    const del=document.createElement("button"); del.type="button"; del.className="small ghost"; del.textContent="Eliminar";
+    del.onclick=()=>confirmSheet(`¿Eliminar ${t.nombre}?`, "Sus productos pasarán a «Cualquiera».", "Eliminar", () => {
+      tiendas=tiendas.filter(x=>x!==t); items.forEach(i=>{ if(i.tienda===t.id) i.tienda=""; }); renderShops(); render(); send({accion:"tiendaBorrar", id:t.id});
+    });
+    row.append(del);
+  }
+  const ok=document.createElement("button"); ok.type="submit"; ok.className="small ok"; ok.textContent = t ? "Guardar" : "Añadir"; row.append(ok);
+  c.addEventListener("submit", e => {
+    e.preventDefault();
+    const nombre=c.querySelector(`#n-${uid}`).value.trim(), alias=c.querySelector(`#a-${uid}`).value.trim();
+    if (!nombre) return toast("Escribe el nombre del supermercado.");
+    if (t){ t.nombre=nombre; t.alias=alias; } else tiendas.push({ id:"tmp"+Date.now(), nombre, alias, orden:999 });
+    document.activeElement && document.activeElement.blur();
+    renderShops(); render(); toast(t ? "Guardado." : `${nombre} añadido.`);
+    send({accion:"tiendaGuardar", tienda:{ id: t ? t.id : "", nombre, alias }});
+  });
+  return c;
+}
+
+/* ================= Escrituras ================= */
 async function send(body){
   pending++;
   try{
     const res = await apiPost(body);
     if (!res.ok) return handleError(res.error);
-    if (pending === 1){ items = res.items; render(); }
+    if (pending === 1){ items = res.items; tiendas = res.tiendas || tiendas; render(); }
     setStatus("");
   }catch(e){
     setStatus("No se ha podido guardar. Revisa la conexión y vuelve a intentarlo.", true);
@@ -230,47 +460,59 @@ function handleError(code){
   if (code === "clave"){ store.del("compra_clave"); CLAVE=null; showGate("Ese código no es correcto."); }
   else setStatus("La hoja ha devuelto un error. Prueba otra vez en un momento.", true);
 }
-
 async function refresh(){
   if (!CLAVE || pending) return;
   try{
     const res = await apiGet();
     if (!res.ok) return handleError(res.error);
     if (pending) return;
-    items = res.items; loaded = true; setStatus(""); render();
-  }catch(e){
-    if (!loaded) setStatus("No se puede cargar la lista. Revisa la conexión.", true);
-  }
+    items = res.items; tiendas = res.tiendas || []; loaded = true; setStatus(""); render();
+  }catch(e){ if (!loaded) setStatus("No se puede cargar la lista. Revisa la conexión.", true); }
 }
 
+/* ================= Entrada: productos u órdenes ================= */
+function handleText(text){
+  if (!text.trim()) return;
+  const cmd = parseCommand(text);
+  if (cmd){
+    if (cmd.tipo==="vaciar") return askVaciar();
+    if (cmd.tipo==="limpiar") return askLimpiar();
+    if (cmd.tipo==="tienda") return askBorrarTienda(cmd.tienda);
+    const hits = [], miss = [];
+    cmd.names.forEach(nm => { const f = findItems(nm); if (f.length) f.forEach(x=>{ if(!hits.includes(x)) hits.push(x); }); else miss.push(nm); });
+    if (hits.length){
+      const ids = hits.map(i=>i.id); items = items.filter(i=>!ids.includes(i.id)); render();
+      send({accion:"borrarVarios", ids});
+    }
+    toast((hits.length ? "Borrado: " + hits.map(i=>i.nombre).join(", ") + ". " : "") + (miss.length ? "No encuentro: " + miss.join(", ") + "." : ""));
+    return;
+  }
+  addFromText(text);
+}
 function addFromText(text){
-  const parsed = parse(text);
+  const parsed = parseAdd(text, (tab!=="todo" && tab!=="tiendas") ? tab : "");
   if (!parsed.length) return;
   const nuevos = parsed.map(p=>({ ...p, seccion: guessCat(p.nombre) }));
-  const have = new Set(items.filter(i=>!i.hecho).map(i=>norm(i.nombre)));
+  const have = {}; items.filter(i=>!i.hecho).forEach(i => have[norm(i.nombre)] = i);
   nuevos.forEach(n=>{
     const k = norm(n.nombre);
-    if (have.has(k)) return; have.add(k);
+    if (have[k]){ if (n.tienda) have[k].tienda = n.tienda; return; }
     const t = items.find(i=>i.hecho && norm(i.nombre)===k);
-    if (t){ t.hecho=false; t.cant=n.cant; } else items.push({ id:"tmp"+Math.random(), nombre:n.nombre, cant:n.cant, seccion:n.seccion, hecho:false });
+    if (t){ t.hecho=false; t.cant=n.cant; t.tienda=n.tienda; have[k]=t; }
+    else { const it={ id:"tmp"+Math.random(), nombre:n.nombre, cant:n.cant, seccion:n.seccion, hecho:false, tienda:n.tienda }; items.push(it); have[k]=it; }
   });
   loaded = true; render();
+  const conTienda = nuevos.filter(n=>n.tienda);
+  if (conTienda.length) toast(nuevos.map(n=>n.nombre + (n.tienda ? " → " + shopName(n.tienda) : "")).join(" · "));
   send({accion:"anadir", items:nuevos});
 }
-function clearDone(){
-  if (!confirmClear){ confirmClear=true; render(); setTimeout(()=>{ confirmClear=false; render(); }, 4000); return; }
-  confirmClear=false; items = items.filter(i=>!i.hecho); render();
-  send({accion:"limpiar"});
-}
-
-/* ---------- Entrada de texto ---------- */
 const form=$("form"), entry=$("entry");
-form.addEventListener("submit", e=>{ e.preventDefault(); const v=entry.value; entry.value=""; autosize(); addFromText(v); });
+form.addEventListener("submit", e=>{ e.preventDefault(); const v=entry.value; entry.value=""; autosize(); handleText(v); });
 entry.addEventListener("keydown", e=>{ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); form.requestSubmit(); } });
 function autosize(){ entry.style.height="auto"; entry.style.height=Math.min(entry.scrollHeight,120)+"px"; }
 entry.addEventListener("input", autosize);
 
-/* ---------- Dictado por voz (Chrome Android) ---------- */
+/* ================= Dictado por voz (Chrome Android) ================= */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const mic = $("mic");
 if (SR){
@@ -291,35 +533,27 @@ if (SR){
     };
     rec.onend = () => {
       mic.classList.remove("on"); mic.setAttribute("aria-label","Dictar"); rec=null;
-      if (finalText.trim()){ entry.value=""; autosize(); addFromText(finalText); }
+      if (finalText.trim()){ entry.value=""; autosize(); handleText(finalText); }
     };
     try { rec.start(); mic.classList.add("on"); mic.setAttribute("aria-label","Parar dictado"); }
     catch(e){ rec=null; }
   };
-} else {
-  $("hint").textContent = "Para dictar: toca el campo y pulsa el micrófono del teclado.";
 }
 
-/* ---------- Arranque ---------- */
+/* ================= Arranque ================= */
 function showGate(msg){
-  $("gate").hidden=false; $("bar").hidden=true; listEl.innerHTML=""; emptyEl.hidden=true; countEl.textContent="";
+  $("gate").hidden=false; $("bar").hidden=true; listEl.innerHTML=""; emptyEl.hidden=true; countEl.textContent=""; tabsEl.innerHTML="";
   setStatus(msg||"", !!msg);
 }
 $("gate").addEventListener("submit", e=>{
   e.preventDefault();
   const v=$("gateInput").value.trim(); if (!v) return;
-  CLAVE=v; store.set("compra_clave", v); $("gateInput").value="";
-  start();
+  CLAVE=v; store.set("compra_clave", v); $("gateInput").value=""; start();
 });
-function start(){
-  $("gate").hidden=true; $("bar").hidden=false; setStatus("Cargando la lista…");
-  refresh();
-}
+function start(){ $("gate").hidden=true; $("bar").hidden=false; setStatus("Cargando la lista…"); refresh(); }
 if (!API_URL.startsWith("https://")) setStatus("Falta pegar la URL de Apps Script en el archivo index.html.", true);
 else if (!CLAVE) showGate();
 else start();
-
-/* Se actualiza sola cada 10 s mientras está abierta, y al volver a ella */
 setInterval(()=>{ if (document.visibilityState==="visible") refresh(); }, 10000);
 document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState==="visible") refresh(); });
 </script>
