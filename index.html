@@ -42,6 +42,7 @@ header{position:sticky;top:0;z-index:5;background:var(--bg);padding-top:calc(16p
 h1{font-family:var(--display);font-weight:800;font-size:1.65rem;letter-spacing:-.01em;margin:0}
 .count{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .count b{color:var(--fg)}
+.who{margin:2px 0 0;font-size:.9rem;color:var(--muted);font-weight:500}
 .tabs{display:flex;gap:6px;overflow-x:auto;padding-block:12px;margin-inline:-4px;padding-inline:4px;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex:none;border:1.5px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:7px 13px;font-size:.92rem;font-weight:500;cursor:pointer;white-space:nowrap}
@@ -125,6 +126,7 @@ button:focus-visible,textarea:focus-visible,.name:focus-visible{outline:2px soli
       <h1>La compra</h1>
       <span class="count" id="count"></span>
     </div>
+    <p class="who" id="who" hidden></p>
     <nav class="tabs" id="tabs" aria-label="Supermercados"></nav>
   </header>
   <p class="status" id="status">Cargando la lista…</p>
@@ -266,10 +268,8 @@ function findItems(term){
 
 /* ================= Código de acceso ================= */
 const store = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
-(function codeFromUrl(){
-  const q = new URLSearchParams(location.search), k = q.get("k");
-  if (k){ store.set("compra_clave", k); history.replaceState(null, "", location.pathname); }
-})();
+/* El código solo se escribe en la pantalla de entrada; si alguien lo pone en la dirección, se ignora y se borra de ella */
+if (location.search) history.replaceState(null, "", location.pathname);
 let CLAVE = store.get("compra_clave");
 
 /* ================= Comunicación con Apps Script ================= */
@@ -285,6 +285,7 @@ const listEl=$("list"), statusEl=$("status"), emptyEl=$("empty"), countEl=$("cou
 let items = [], tiendas = [], loaded = false, pending = 0;
 let tab = store.get("compra_tab") || "todo";
 
+function showWho(n){ const w=$("who"); w.textContent = n || ""; w.hidden = !n; }
 function setStatus(msg, err){ statusEl.textContent = msg||""; statusEl.hidden = !msg; statusEl.classList.toggle("err", !!err); }
 let toastTimer;
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.hidden=true, 3200); }
@@ -450,7 +451,7 @@ async function send(body){
   try{
     const res = await apiPost(body);
     if (!res.ok) return handleError(res.error);
-    if (pending === 1){ items = res.items; tiendas = res.tiendas || tiendas; render(); }
+    if (pending === 1){ items = res.items; tiendas = res.tiendas || tiendas; showWho(res.lista); render(); }
     setStatus("");
   }catch(e){
     setStatus("No se ha podido guardar. Revisa la conexión y vuelve a intentarlo.", true);
@@ -466,7 +467,7 @@ async function refresh(){
     const res = await apiGet();
     if (!res.ok) return handleError(res.error);
     if (pending) return;
-    items = res.items; tiendas = res.tiendas || []; loaded = true; setStatus(""); render();
+    items = res.items; tiendas = res.tiendas || []; loaded = true; showWho(res.lista); setStatus(""); render();
   }catch(e){ if (!loaded) setStatus("No se puede cargar la lista. Revisa la conexión.", true); }
 }
 
@@ -542,7 +543,7 @@ if (SR){
 
 /* ================= Arranque ================= */
 function showGate(msg){
-  $("gate").hidden=false; $("bar").hidden=true; listEl.innerHTML=""; emptyEl.hidden=true; countEl.textContent=""; tabsEl.innerHTML="";
+  $("gate").hidden=false; $("bar").hidden=true; showWho(""); listEl.innerHTML=""; emptyEl.hidden=true; countEl.textContent=""; tabsEl.innerHTML="";
   setStatus(msg||"", !!msg);
 }
 $("gate").addEventListener("submit", e=>{
