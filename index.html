@@ -243,8 +243,22 @@ function parseAdd(text, defaultStore){
 }
 /* Órdenes: borrar algo, todo, lo comprado o lo de una tienda */
 const DEL_RE = /^(borra|borrar|borrame|bórrame|quita|quitar|quitame|quítame|elimina|eliminar|saca|sacar|tacha)\s+(.*)$/i;
+const SHOP_WORD = "(?:supermercado|s[uú]per|tienda)";
+const ADD_SHOP_RE = new RegExp("^(?:a[ñn]ade|a[ñn]adir|a[ñn]ademe|nuev[oa]|crea|crear|pon|apunta|mete)\\s+(?:(?:un|una|el|la)\\s+)?(?:nuev[oa]\\s+)?" + SHOP_WORD + "\\s+(?:nuev[oa]\\s+)?(?:llamad[oa]\\s+)?(?:(?:el|la)\\s+)?(.+)$", "i");
+const DEL_SHOP_RE = new RegExp("^(?:borra|borrar|elimina|eliminar|quita|quitar)\\s+(?:(?:el|la)\\s+)?" + SHOP_WORD + "\\s+(?:(?:el|la|del|de)\\s+)?(.+)$", "i");
+function shopFromText(t){
+  const { found } = markStores(t);
+  if (found.length) return found[0];
+  const n = norm(t); const x = tiendas.find(s => norm(s.nombre) === n);
+  return x ? x.id : null;
+}
 function parseCommand(text){
-  const m = text.trim().match(DEL_RE);
+  const clean = text.trim().replace(/[.!¡¿?]+$/,"");
+  let ms = clean.match(ADD_SHOP_RE);
+  if (ms) return { tipo:"nuevaTienda", nombre: ms[1].trim().split(/\s+/).map(cap).join(" ") };
+  ms = clean.match(DEL_SHOP_RE);
+  if (ms) return { tipo:"borrarTienda", tienda: shopFromText(ms[1].trim()), nombre: ms[1].trim() };
+  const m = clean.match(DEL_RE);
   if (!m) return null;
   let rest = m[2].trim().replace(/[.!]+$/,"");
   const r = norm(rest);
@@ -427,9 +441,7 @@ function shopCard(t){
   const row=c.querySelector(".row");
   if (t){
     const del=document.createElement("button"); del.type="button"; del.className="small ghost"; del.textContent="Eliminar";
-    del.onclick=()=>confirmSheet(`¿Eliminar ${t.nombre}?`, "Sus productos pasarán a «Cualquiera».", "Eliminar", () => {
-      tiendas=tiendas.filter(x=>x!==t); items.forEach(i=>{ if(i.tienda===t.id) i.tienda=""; }); renderShops(); render(); send({accion:"tiendaBorrar", id:t.id});
-    });
+    del.onclick=()=>askEliminarTienda(t);
     row.append(del);
   }
   const ok=document.createElement("button"); ok.type="submit"; ok.className="small ok"; ok.textContent = t ? "Guardar" : "Añadir"; row.append(ok);
@@ -443,6 +455,22 @@ function shopCard(t){
     send({accion:"tiendaGuardar", tienda:{ id: t ? t.id : "", nombre, alias }});
   });
   return c;
+}
+
+function askEliminarTienda(t){
+  confirmSheet(`¿Eliminar ${t.nombre}?`, "Sus productos pasarán a «Cualquiera».", "Eliminar", () => {
+    tiendas=tiendas.filter(x=>x!==t); items.forEach(i=>{ if(i.tienda===t.id) i.tienda=""; });
+    if (tab===t.id) { tab="todo"; store.set("compra_tab","todo"); }
+    renderShops(); render(); toast(`${t.nombre} eliminado.`); send({accion:"tiendaBorrar", id:t.id});
+  });
+}
+function nuevaTiendaPorVoz(nombre){
+  if (!nombre) return toast("Di el nombre: «nuevo supermercado Alcampo».");
+  const ya = shopFromText(nombre);
+  if (ya) return toast(`${shopName(ya)} ya está en tus supermercados.`);
+  tiendas.push({ id:"tmp"+Date.now(), nombre, alias:norm(nombre), orden:999 });
+  render(); toast(`Supermercado ${nombre} añadido.`);
+  send({accion:"tiendaGuardar", tienda:{ id:"", nombre, alias:norm(nombre) }});
 }
 
 /* ================= Escrituras ================= */
@@ -479,6 +507,11 @@ function handleText(text){
     if (cmd.tipo==="vaciar") return askVaciar();
     if (cmd.tipo==="limpiar") return askLimpiar();
     if (cmd.tipo==="tienda") return askBorrarTienda(cmd.tienda);
+    if (cmd.tipo==="nuevaTienda") return nuevaTiendaPorVoz(cmd.nombre);
+    if (cmd.tipo==="borrarTienda"){
+      const t = tiendas.find(x=>x.id===cmd.tienda);
+      return t ? askEliminarTienda(t) : toast(`No encuentro el supermercado «${cmd.nombre}».`);
+    }
     const hits = [], miss = [];
     cmd.names.forEach(nm => { const f = findItems(nm); if (f.length) f.forEach(x=>{ if(!hits.includes(x)) hits.push(x); }); else miss.push(nm); });
     if (hits.length){
